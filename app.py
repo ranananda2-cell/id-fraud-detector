@@ -1,4 +1,3 @@
-
 import streamlit as st
 from PIL import Image
 import cv2
@@ -7,33 +6,31 @@ import numpy as np
 st.set_page_config(page_title="AI ID Forgery Detection", layout="centered")
 
 st.title("AI ID Forgery Detection System")
-st.write("Upload an ID document image to analyze possible tampering.")
+st.write("Upload an ID document image to analyze potential tampering.")
 
-uploaded_file = st.file_uploader("Upload ID Document", type=["jpg","jpeg","png"])
+uploaded_file = st.file_uploader("Upload ID Document", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
 
+    # Load image
     image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Document", use_container_width=True)
 
-    st.success("Image format validated")
+    st.subheader("Uploaded Document")
+    st.image(image, use_container_width=True)
 
-    # Convert to OpenCV format
+    # Convert image to OpenCV format
     img = np.array(image)
+
+    # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Edge detection (simple tampering signal)
-    edges = cv2.Canny(gray,100,200)
+    # Edge detection
+    edges = cv2.Canny(gray, 100, 200)
 
+    # Calculate tampering score
     tamper_score = float(np.mean(edges))
-    st.subheader("Edge Analysis")
 
-st.image(
-    edges,
-    caption="Edge Detection Output (used to detect tampering patterns)",
-    use_container_width=True
-
-    # Simple rule based fraud scoring
+    # Risk evaluation
     risk = "LOW"
 
     if tamper_score > 20:
@@ -42,26 +39,32 @@ st.image(
     if tamper_score > 40:
         risk = "HIGH"
 
-  st.subheader("Fraud Detection Report")
+    # Edge visualization
+    st.subheader("Edge Analysis")
+    st.image(
+        edges,
+        caption="Edge Detection Output (used to detect tampering patterns)",
+        use_container_width=True
+    )
 
-report = {
-    "tampering_score": round(tamper_score,2),
-    "risk_level": risk,
-    "analysis_method": "OpenCV Edge Detection",
-    "conclusion": "Possible document tampering detected" if risk != "LOW" else "Document appears genuine"
-}
+    # Structured fraud report
+    st.subheader("Fraud Detection Report")
 
-st.json(report)
+    report = {
+        "tampering_score": round(tamper_score, 2),
+        "risk_level": risk,
+        "analysis_method": "OpenCV Edge Detection",
+        "conclusion": "Possible document tampering detected" if risk != "LOW" else "Document appears genuine"
+    }
 
+    st.json(report)
+
+    # User-friendly message
     if risk == "HIGH":
-        st.error("⚠ Possible document tampering detected")
+        st.error("⚠ Possible document forgery detected")
 
     elif risk == "MEDIUM":
         st.warning("⚠ Suspicious signals detected. Manual verification recommended")
 
     else:
-        st.success("✓ Document appears likely genuine")
-
-    # Show edges for visual explanation
-    st.subheader("Edge Analysis")
-    st.image(edges, caption="Edge Detection Output")
+        st.success("✅ Document appears genuine")
