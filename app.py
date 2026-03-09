@@ -26,6 +26,12 @@ if uploaded_file is not None:
     edges = cv2.Canny(gray,100,200)
 
     tamper_score = float(np.mean(edges))
+    st.subheader("Edge Analysis")
+
+st.image(
+    edges,
+    caption="Edge Detection Output (used to detect tampering patterns)",
+    use_container_width=True
 
     # Simple rule based fraud scoring
     risk = "LOW"
@@ -36,10 +42,16 @@ if uploaded_file is not None:
     if tamper_score > 40:
         risk = "HIGH"
 
-    st.subheader("Fraud Detection Report")
+  st.subheader("Fraud Detection Report")
 
-    st.write("Tampering Score:", round(tamper_score,2))
-    st.write("Risk Level:", risk)
+report = {
+    "tampering_score": round(tamper_score,2),
+    "risk_level": risk,
+    "analysis_method": "OpenCV Edge Detection",
+    "conclusion": "Possible document tampering detected" if risk != "LOW" else "Document appears genuine"
+}
+
+st.json(report)
 
     if risk == "HIGH":
         st.error("⚠ Possible document tampering detected")
